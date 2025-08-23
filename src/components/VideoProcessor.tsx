@@ -30,24 +30,24 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     if (!ctx) return;
 
     try {
-      // Set canvas dimensions to match video
-      video.addEventListener('loadedmetadata', () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+      // Wait for video metadata to load
+      await new Promise((resolve) => {
+        if (video.readyState >= 1) {
+          resolve(undefined);
+        } else {
+          video.addEventListener('loadedmetadata', () => resolve(undefined), { once: true });
+        }
       });
 
-      // Create MediaRecorder for output with MP4 support
+      // Set canvas dimensions to match video (preserving aspect ratio)
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Create MediaRecorder for output - use WebM for better compatibility
       const stream = canvas.captureStream(30);
-      
-      // Try different codecs for better compatibility and MP4 output
-      let mimeType = 'video/mp4;codecs=avc1.424028';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'video/webm;codecs=vp8';
-      }
-      
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType,
-        videoBitsPerSecond: 8000000, // High quality 8Mbps
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: 5000000, // 5Mbps for good quality
       });
 
       const chunks: Blob[] = [];
@@ -58,8 +58,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       };
 
       mediaRecorder.onstop = () => {
-        const finalMimeType = mimeType.includes('mp4') ? 'video/mp4' : 'video/webm';
-        const blob = new Blob(chunks, { type: finalMimeType });
+        const blob = new Blob(chunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         setProcessedVideoUrl(url);
         onProcessingComplete(url);
@@ -68,25 +67,30 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         toast.success('Video processing completed!');
       };
 
-      // Start recording
-      mediaRecorder.start();
-
       // Set playback speed if speed boost is enabled
       if (effects.speedBoost) {
         video.playbackRate = 1.2;
+      } else {
+        video.playbackRate = 1.0;
       }
 
-      // Animation loop for processing effects
+      // Start recording
+      mediaRecorder.start();
+
+      // Reset video to start
+      video.currentTime = 0;
+      
+      // Animation loop variables
       let frameCount = 0;
       const maxFrames = Math.floor(video.duration * 30); // Estimate frames
-
-        const processFrame = () => {
-        if (video.ended || video.paused) {
+      
+      const processFrame = () => {
+        if (video.ended) {
           mediaRecorder.stop();
           return;
         }
 
-        // Clear canvas and draw video frame
+        // Clear canvas and draw video frame (maintains aspect ratio)
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -139,8 +143,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       };
 
       // Start video playback and processing
-      video.currentTime = 0;
-      video.play();
+      await video.play();
       processFrame();
 
     } catch (error) {
@@ -162,9 +165,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     if (processedVideoUrl) {
       const a = document.createElement('a');
       a.href = processedVideoUrl;
-      // Determine file extension based on the blob type
-      const extension = processedVideoUrl.includes('mp4') ? '.mp4' : '.webm';
-      a.download = `processed_${videoFile.name.replace(/\.[^/.]+$/, '')}${extension}`;
+      a.download = `processed_${videoFile.name.replace(/\.[^/.]+$/, '')}.webm`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
