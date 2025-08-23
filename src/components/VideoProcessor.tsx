@@ -36,10 +36,18 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         canvas.height = video.videoHeight;
       });
 
-      // Create MediaRecorder for output
+      // Create MediaRecorder for output with MP4 support
       const stream = canvas.captureStream(30);
+      
+      // Try different codecs for better compatibility and MP4 output
+      let mimeType = 'video/mp4;codecs=avc1.424028';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm;codecs=vp8';
+      }
+      
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9',
+        mimeType,
+        videoBitsPerSecond: 8000000, // High quality 8Mbps
       });
 
       const chunks: Blob[] = [];
@@ -50,7 +58,8 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
+        const finalMimeType = mimeType.includes('mp4') ? 'video/mp4' : 'video/webm';
+        const blob = new Blob(chunks, { type: finalMimeType });
         const url = URL.createObjectURL(blob);
         setProcessedVideoUrl(url);
         onProcessingComplete(url);
@@ -71,13 +80,14 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       let frameCount = 0;
       const maxFrames = Math.floor(video.duration * 30); // Estimate frames
 
-      const processFrame = () => {
-        if (video.ended || !isProcessing) {
+        const processFrame = () => {
+        if (video.ended || video.paused) {
           mediaRecorder.stop();
           return;
         }
 
-        // Draw video frame
+        // Clear canvas and draw video frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         // Apply brightness and saturation effect
@@ -152,7 +162,9 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     if (processedVideoUrl) {
       const a = document.createElement('a');
       a.href = processedVideoUrl;
-      a.download = `processed_${videoFile.name.replace(/\.[^/.]+$/, '')}.webm`;
+      // Determine file extension based on the blob type
+      const extension = processedVideoUrl.includes('mp4') ? '.mp4' : '.webm';
+      a.download = `processed_${videoFile.name.replace(/\.[^/.]+$/, '')}${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
