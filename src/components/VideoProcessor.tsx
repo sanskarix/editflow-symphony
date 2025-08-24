@@ -294,58 +294,61 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
           return;
         }
 
-        // Clear canvas and draw video frame with maximum quality settings
+        // Clear canvas and draw video frame with maximum quality preservation
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Disable smoothing for pixel-perfect rendering (unless effects require it)
-        ctx.imageSmoothingEnabled = false; // Preserve original pixels
+        // Use high quality rendering for better visual fidelity
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         // Save context state for effects
         ctx.save();
 
-        // Apply brightness and saturation effect
+        // Apply subtle brightness and saturation effect (reduced intensity for quality preservation)
         if (effects.brightnessBoost) {
-          ctx.filter = 'brightness(1.2) saturate(1.15) contrast(1.05)';
-          ctx.imageSmoothingEnabled = true; // Enable smoothing only for filters
-          ctx.imageSmoothingQuality = 'high';
+          ctx.filter = 'brightness(1.1) saturate(1.08) contrast(1.02)'; // More subtle to preserve original look
         }
 
-        // Draw video frame at exact dimensions
+        // Draw video frame at exact dimensions with optimal quality
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         // Restore context state
         ctx.restore();
 
-        // Add line overlay effect (doubled thickness)
+        // Add line overlay effect (doubled thickness with quality preservation)
         if (effects.lineOverlay) {
+          ctx.save();
           const gradient = ctx.createLinearGradient(0, canvas.height / 2 - 2, 0, canvas.height / 2 + 2);
           gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-          gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+          gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.25)'); // Slightly more subtle
           gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
+          ctx.globalCompositeOperation = 'screen'; // Better blending for quality
           ctx.fillStyle = gradient;
           ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
+          ctx.restore();
         }
 
-        // Add lens flare effect
+        // Add lens flare effect with quality preservation
         if (effects.lensFlare) {
-          const time = frameCount / 30; // Convert to seconds
+          ctx.save();
+          const time = frameCount / detectedFrameRate; // Use actual frame rate for timing
           // Horizontal movement - left to right and back with smooth oscillation
           const flareX = (Math.sin(time * 0.4) * 0.5 + 0.5) * canvas.width;
           const flareY = canvas.height * 0.4; // Keep it in upper portion
-          
-          // Larger, more subtle lens flare
-          const flareRadius = Math.min(canvas.width, canvas.height) * 0.4;
+
+          // Quality-optimized lens flare
+          const flareRadius = Math.min(canvas.width, canvas.height) * 0.35; // Slightly smaller for subtlety
           const flareGradient = ctx.createRadialGradient(flareX, flareY, 0, flareX, flareY, flareRadius);
-          flareGradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');  // 50% opacity center
-          flareGradient.addColorStop(0.2, 'rgba(255, 220, 150, 0.3)'); // Warm tone
-          flareGradient.addColorStop(0.5, 'rgba(255, 200, 100, 0.1)'); // Subtle outer glow
+          flareGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');  // Reduced opacity for quality
+          flareGradient.addColorStop(0.2, 'rgba(255, 220, 150, 0.25)'); // More subtle warm tone
+          flareGradient.addColorStop(0.5, 'rgba(255, 200, 100, 0.08)'); // Very subtle outer glow
           flareGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-          
+
           ctx.globalCompositeOperation = 'screen'; // Blend mode for realistic flare
           ctx.fillStyle = flareGradient;
           ctx.fillRect(flareX - flareRadius, flareY - flareRadius, flareRadius * 2, flareRadius * 2);
-          ctx.globalCompositeOperation = 'source-over'; // Reset blend mode
+          ctx.restore();
         }
 
         frameCount++;
