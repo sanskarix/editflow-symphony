@@ -236,6 +236,12 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       console.error('Video processing error:', error);
       toast.error('Error processing video. Please try again.');
       setIsProcessing(false);
+
+      // Restore video state on error
+      if (video) {
+        video.muted = wasOriginallyMuted;
+        video.volume = 1.0;
+      }
     }
   }, [videoFile, effects, onProcessingComplete, isProcessing]);
 
