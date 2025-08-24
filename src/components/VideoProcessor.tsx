@@ -69,7 +69,40 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         await audioContext.resume();
       }
 
-      const source = audioContext.createMediaElementSource(video);
+      // Check if video element is already connected to an audio context
+      let source;
+      try {
+        source = audioContext.createMediaElementSource(video);
+      } catch (error) {
+        if (error.name === 'InvalidStateError') {
+          console.warn('Video element already connected to an AudioContext. Creating new video element...');
+          // Create a clone of the video for audio processing
+          const newVideo = document.createElement('video');
+          newVideo.src = video.src;
+          newVideo.muted = false;
+          newVideo.volume = 1.0;
+          newVideo.currentTime = video.currentTime;
+          newVideo.playbackRate = video.playbackRate;
+
+          // Wait for the new video to be ready
+          await new Promise((resolve) => {
+            newVideo.addEventListener('loadedmetadata', resolve, { once: true });
+            newVideo.load();
+          });
+
+          source = audioContext.createMediaElementSource(newVideo);
+
+          // Sync the new video with the original
+          video.addEventListener('timeupdate', () => {
+            if (Math.abs(newVideo.currentTime - video.currentTime) > 0.1) {
+              newVideo.currentTime = video.currentTime;
+            }
+          });
+        } else {
+          throw error;
+        }
+      }
+
       const destination = audioContext.createMediaStreamDestination();
 
       // Connect audio properly
