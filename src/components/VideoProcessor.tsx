@@ -267,12 +267,23 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
   useEffect(() => {
     if (videoRef.current) {
       const video = videoRef.current;
-      video.src = URL.createObjectURL(videoFile);
-      video.muted = false; // Ensure audio is not muted for processing
-      video.volume = 1.0; // Set full volume
-      video.preload = 'metadata';
+
+      // Set up video element for optimal audio/video capture
+      video.muted = false;
+      video.volume = 1.0;
+      video.preload = 'auto'; // Load entire video for better processing
       video.crossOrigin = 'anonymous';
+      video.playsInline = true;
+
+      // Create object URL and load
+      const objectUrl = URL.createObjectURL(videoFile);
+      video.src = objectUrl;
       video.load();
+
+      // Cleanup object URL when component unmounts
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
     }
   }, [videoFile]);
 
