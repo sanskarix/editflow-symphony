@@ -35,7 +35,7 @@ const effectsConfig = [
   {
     id: 'brightnessBoost' as keyof VideoEffects,
     name: 'Brightness & Saturation',
-    description: 'Enhances brightness and saturation by 10%',
+    description: 'Subtle enhancement preserving original quality',
     icon: Sun,
     color: 'text-orange-400',
   },
