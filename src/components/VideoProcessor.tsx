@@ -191,28 +191,27 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
           return;
         }
 
-        // Clear canvas and draw video frame with high quality settings
+        // Clear canvas and draw video frame with maximum quality settings
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Set highest quality rendering
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+        // Disable smoothing for pixel-perfect rendering (unless effects require it)
+        ctx.imageSmoothingEnabled = false; // Preserve original pixels
 
-        // Preserve exact pixel data
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.textBaseline = 'top';
+        // Save context state for effects
+        ctx.save();
 
         // Apply brightness and saturation effect
         if (effects.brightnessBoost) {
           ctx.filter = 'brightness(1.2) saturate(1.15) contrast(1.05)';
+          ctx.imageSmoothingEnabled = true; // Enable smoothing only for filters
+          ctx.imageSmoothingQuality = 'high';
         }
 
+        // Draw video frame at exact dimensions
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Reset filter after drawing
-        if (effects.brightnessBoost) {
-          ctx.filter = 'none';
-        }
+        // Restore context state
+        ctx.restore();
 
         // Add line overlay effect (doubled thickness)
         if (effects.lineOverlay) {
