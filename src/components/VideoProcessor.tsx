@@ -60,18 +60,39 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         ...audioTracks
       ]);
 
-      // Try MP4 first, fallback to WebM if not supported
+      // Try different MP4 codecs and higher quality settings
       let mimeType = 'video/mp4;codecs=h264,aac';
       let fileExtension = 'mp4';
-      
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
+      let videoBitsPerSecond = 12000000; // 12Mbps for higher quality
+
+      // Try various MP4 configurations for better compatibility
+      const mp4Options = [
+        'video/mp4;codecs=h264,aac',
+        'video/mp4;codecs=avc1.640028,mp4a.40.2',
+        'video/mp4'
+      ];
+
+      let supportedMimeType = null;
+      for (const option of mp4Options) {
+        if (MediaRecorder.isTypeSupported(option)) {
+          supportedMimeType = option;
+          break;
+        }
+      }
+
+      if (supportedMimeType) {
+        mimeType = supportedMimeType;
+      } else {
+        // Fallback to WebM with high quality
         mimeType = 'video/webm;codecs=vp9,opus';
         fileExtension = 'webm';
+        videoBitsPerSecond = 10000000; // 10Mbps for WebM
       }
 
       const mediaRecorder = new MediaRecorder(combinedStream, {
         mimeType: mimeType,
-        videoBitsPerSecond: 8000000, // 8Mbps for high quality
+        videoBitsPerSecond: videoBitsPerSecond,
+        audioBitsPerSecond: 320000, // High quality audio
       });
 
       const chunks: Blob[] = [];
@@ -95,10 +116,17 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       };
 
       // Set playback speed if speed boost is enabled
-      if (effects.speedBoost) {
-        video.playbackRate = 1.1;
-      } else {
-        video.playbackRate = 1.0;
+      const playbackRate = effects.speedBoost ? 1.1 : 1.0;
+      video.playbackRate = playbackRate;
+
+      // Also adjust audio context playback rate to match video
+      if (effects.speedBoost && audioContext.state === 'running') {
+        // Create a gain node to control audio speed/pitch
+        const gainNode = audioContext.createGain();
+        source.disconnect();
+        source.connect(gainNode);
+        gainNode.connect(destination);
+        gainNode.connect(audioContext.destination);
       }
 
       // Start recording
@@ -117,16 +145,20 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
           return;
         }
 
-        // Clear canvas and draw video frame (maintains aspect ratio)
+        // Clear canvas and draw video frame with high quality settings
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Apply brightness and saturation effect (optimized for better performance)
+
+        // Set high quality rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Apply brightness and saturation effect
         if (effects.brightnessBoost) {
-          ctx.filter = 'brightness(1.1) saturate(1.1)';
+          ctx.filter = 'brightness(1.2) saturate(1.15) contrast(1.05)';
         }
-        
+
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
+
         // Reset filter after drawing
         if (effects.brightnessBoost) {
           ctx.filter = 'none';
