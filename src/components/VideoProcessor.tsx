@@ -150,11 +150,11 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         'video/mp4'
       ];
 
-      let supportedMimeType = null;
+let supportedMimeType = null;
       for (const option of mp4Options) {
         if (MediaRecorder.isTypeSupported(option)) {
           supportedMimeType = option;
-          actualExtension = 'mp4';
+          currentActualExtension = 'mp4';
           break;
         }
       }
@@ -188,8 +188,8 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         const url = URL.createObjectURL(blob);
         setProcessedVideoUrl(url);
         // Store extension information in state
-        setActualExtension(actualExtension);
-        setDownloadExtension(downloadExtension);
+        setActualExtension(currentActualExtension);
+        setDownloadExtension(currentDownloadExtension);
         onProcessingComplete(url);
         setIsProcessing(false);
         setProgress(100);
