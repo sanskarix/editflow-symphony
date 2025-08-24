@@ -273,7 +273,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       
       // Animation loop variables
       let frameCount = 0;
-      const maxFrames = Math.floor(video.duration * Math.min(30, 30)); // Cap at 30fps to prevent bloat
+      const maxFrames = Math.floor(video.duration * targetFrameRate); // Use calculated target frame rate
       
       const processFrame = () => {
         if (video.ended) {
