@@ -169,8 +169,14 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         console.log('Final audio tracks:', tracks.length, tracks.map(t => t.enabled));
       }, 100);
 
-      // Start recording
-      mediaRecorder.start();
+      // Start recording with error handling
+      try {
+        mediaRecorder.start(100); // Request data every 100ms for smoother recording
+        console.log('MediaRecorder started successfully');
+      } catch (err) {
+        console.error('Failed to start MediaRecorder:', err);
+        throw new Error('Failed to start video recording');
+      }
 
       // Reset video to start
       video.currentTime = 0;
