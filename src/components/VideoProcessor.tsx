@@ -17,6 +17,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
   const [processedVideoUrl, setProcessedVideoUrl] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const processVideo = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current) return;
