@@ -75,6 +75,12 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       // Connect audio properly
       source.connect(destination);
 
+      // Check for MP4 support, but use WebM with MP4 download name
+      let mimeType = 'video/webm;codecs=vp9,opus';
+      let actualExtension = 'webm';
+      let downloadExtension = 'mp4'; // Always download as MP4 name
+      let videoBitsPerSecond = 20000000; // 20Mbps for highest quality
+
       // Combine video and audio streams with higher quality
       const videoStream = canvas.captureStream(60); // Higher frame rate for better quality
       const audioTracks = destination.stream.getAudioTracks();
@@ -88,18 +94,12 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       console.log('- Video bitrate:', videoBitsPerSecond);
       console.log('- Audio bitrate: 320000');
       console.log('- Frame rate: 60fps');
-      
+
       // Create combined stream with both video and audio
       const combinedStream = new MediaStream([
         ...videoStream.getVideoTracks(),
         ...audioTracks
       ]);
-
-      // Check for MP4 support, but use WebM with MP4 download name
-      let mimeType = 'video/webm;codecs=vp9,opus';
-      let actualExtension = 'webm';
-      let downloadExtension = 'mp4'; // Always download as MP4 name
-      let videoBitsPerSecond = 20000000; // 20Mbps for highest quality
 
       // Try MP4 first (though most browsers don't support it)
       const mp4Options = [
