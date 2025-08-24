@@ -351,6 +351,16 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     }
   }, [videoFile]);
 
+  // Cleanup audio context on component unmount
+  useEffect(() => {
+    return () => {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
+
   const downloadVideo = () => {
     if (processedVideoUrl) {
       const a = document.createElement('a');
