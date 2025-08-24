@@ -60,25 +60,27 @@ export default function VideoEditor() {
                 { step: 'processing', label: 'Process', icon: Video },
               ].map(({ step, label, icon: Icon }, index) => {
                 const isActive = currentStep === step;
-                const isCompleted = 
+                const isCompleted =
                   (step === 'upload' && selectedVideo) ||
                   (step === 'effects' && currentStep === 'processing');
-                
+
                 return (
                   <div key={step} className="flex items-center gap-4">
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full transition-smooth ${
-                      isActive 
-                        ? 'bg-gradient-primary text-primary-foreground shadow-glow' 
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 hover:scale-105 ${
+                      isActive
+                        ? 'bg-gradient-primary text-primary-foreground shadow-glow animate-pulse'
                         : isCompleted
-                        ? 'bg-accent text-accent-foreground'
-                        : 'bg-secondary text-secondary-foreground'
+                        ? 'bg-accent text-accent-foreground shadow-accent'
+                        : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                     }`}>
-                      <Icon className="w-4 h-4" />
+                      <Icon className={`w-4 h-4 transition-transform duration-300 ${
+                        isActive ? 'animate-bounce' : ''
+                      }`} />
                       <span className="text-sm font-medium">{label}</span>
                     </div>
                     {index < 2 && (
-                      <div className={`w-8 h-0.5 transition-smooth ${
-                        isCompleted ? 'bg-accent' : 'bg-border'
+                      <div className={`w-8 h-0.5 transition-all duration-500 ${
+                        isCompleted ? 'bg-accent shadow-accent' : 'bg-border'
                       }`} />
                     )}
                   </div>
