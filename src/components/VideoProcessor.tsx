@@ -152,7 +152,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         'video/mp4'
       ];
 
-let supportedMimeType = null;
+      let supportedMimeType = null;
       for (const option of mp4Options) {
         if (MediaRecorder.isTypeSupported(option)) {
           supportedMimeType = option;
