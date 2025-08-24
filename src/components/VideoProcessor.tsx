@@ -241,11 +241,11 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          Video Processing
+          {isProcessing ? '🎬 Processing Your Video' : processedVideoUrl ? '✨ Processing Complete!' : '🚀 Ready to Process'}
         </h2>
         <p className="text-muted-foreground">
-          {isProcessing ? 'Processing your video with selected effects...' : 
-           processedVideoUrl ? 'Processing complete!' : 'Ready to process'}
+          {isProcessing ? 'Applying effects and enhancing quality...' :
+           processedVideoUrl ? 'Your enhanced video is ready for download!' : 'Click start to begin processing'}
         </p>
       </div>
 
@@ -256,45 +256,65 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       </div>
 
       {/* Processing UI */}
-      <div className="glass-strong rounded-xl p-8 border border-glass-border">
+      <div className={`glass-strong rounded-xl p-8 border transition-all duration-500 ${
+        isProcessing ? 'border-primary shadow-glow animate-pulse' :
+        processedVideoUrl ? 'border-green-400 shadow-accent' : 'border-glass-border'
+      }`}>
         <div className="flex items-center justify-center mb-6">
           {isProcessing ? (
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <div className="relative">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
+              <div className="absolute inset-0 w-12 h-12 border-2 border-primary/20 rounded-full animate-ping" />
+            </div>
           ) : processedVideoUrl ? (
-            <CheckCircle className="w-8 h-8 text-green-400" />
+            <div className="relative">
+              <CheckCircle className="w-12 h-12 text-green-400 animate-bounce" />
+              <div className="absolute inset-0 w-12 h-12 border-2 border-green-400/20 rounded-full animate-ping" />
+            </div>
           ) : (
-            <div className="w-8 h-8 bg-gradient-primary rounded-full" />
+            <div className="w-12 h-12 bg-gradient-primary rounded-full animate-pulse" />
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              Progress: {Math.round(progress)}%
+            <p className={`text-sm mb-2 transition-colors duration-300 ${
+              isProcessing ? 'text-primary font-medium' : 'text-muted-foreground'
+            }`}>
+              {isProcessing ? `Processing... ${Math.round(progress)}%` :
+               processedVideoUrl ? 'Ready for download!' : 'Waiting to start...'}
             </p>
-            <Progress value={progress} className="w-full" />
+            <Progress value={progress} className={`w-full transition-all duration-300 ${
+              isProcessing ? 'scale-105' : ''
+            }`} />
+            {isProcessing && (
+              <p className="text-xs text-muted-foreground mt-2 animate-pulse">
+                This may take a few moments depending on video length
+              </p>
+            )}
           </div>
 
           <div className="flex justify-center gap-4">
             {!isProcessing && !processedVideoUrl && (
-              <Button 
-                variant="hero" 
+              <Button
+                variant="hero"
                 size="lg"
                 onClick={processVideo}
+                className="transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-glow"
               >
-                Start Processing
+                🎬 Start Processing
               </Button>
             )}
 
             {processedVideoUrl && (
-              <Button 
-                variant="accent" 
+              <Button
+                variant="accent"
                 size="lg"
                 onClick={downloadVideo}
-                className="gap-2"
+                className="gap-2 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-accent animate-bounce"
               >
                 <Download className="w-4 h-4" />
-                Download Processed Video
+                📥 Download Enhanced Video
               </Button>
             )}
           </div>
