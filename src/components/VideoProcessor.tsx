@@ -43,11 +43,35 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // Create MediaRecorder for output - use WebM for better compatibility
-      const stream = canvas.captureStream(30);
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9',
-        videoBitsPerSecond: 5000000, // 5Mbps for good quality
+      // Create audio context and get audio stream from video
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaElementSource(video);
+      const destination = audioContext.createMediaStreamDestination();
+      source.connect(destination);
+      source.connect(audioContext.destination);
+
+      // Combine video and audio streams
+      const videoStream = canvas.captureStream(30);
+      const audioTracks = destination.stream.getAudioTracks();
+      
+      // Create combined stream with both video and audio
+      const combinedStream = new MediaStream([
+        ...videoStream.getVideoTracks(),
+        ...audioTracks
+      ]);
+
+      // Try MP4 first, fallback to WebM if not supported
+      let mimeType = 'video/mp4;codecs=h264,aac';
+      let fileExtension = 'mp4';
+      
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm;codecs=vp9,opus';
+        fileExtension = 'webm';
+      }
+
+      const mediaRecorder = new MediaRecorder(combinedStream, {
+        mimeType: mimeType,
+        videoBitsPerSecond: 8000000, // 8Mbps for high quality
       });
 
       const chunks: Blob[] = [];
@@ -58,13 +82,16 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
+        const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setProcessedVideoUrl(url);
+        // Store file extension for download
+        (url as any).fileExtension = fileExtension;
         onProcessingComplete(url);
         setIsProcessing(false);
         setProgress(100);
-        toast.success('Video processing completed!');
+        audioContext.close(); // Clean up audio context
+        toast.success('Video processing completed successfully!');
       };
 
       // Set playback speed if speed boost is enabled
@@ -167,11 +194,14 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     if (processedVideoUrl) {
       const a = document.createElement('a');
       a.href = processedVideoUrl;
-      a.download = `processed_${videoFile.name.replace(/\.[^/.]+$/, '')}.webm`;
+      // Get original filename without extension and add _processed suffix
+      const originalName = videoFile.name.replace(/\.[^/.]+$/, '');
+      const extension = (processedVideoUrl as any).fileExtension || 'webm';
+      a.download = `${originalName}_processed.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      toast.success('Download started!');
+      toast.success('Download started! Check your downloads folder.');
     }
   };
 
