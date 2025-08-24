@@ -119,8 +119,8 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       // Check for MP4 support, but use WebM with MP4 download name
       let mimeType = 'video/webm;codecs=vp9,opus';
-      let actualExtension = 'webm';
-      let downloadExtension = 'mp4'; // Always download as MP4 name
+      let currentActualExtension = 'webm';
+      let currentDownloadExtension = 'mp4'; // Always download as MP4 name
       let videoBitsPerSecond = 20000000; // 20Mbps for highest quality
 
       // Combine video and audio streams with higher quality
