@@ -43,6 +43,11 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
+      // Temporarily unmute video for audio processing
+      const wasOriginallyMuted = video.muted;
+      video.muted = false;
+      video.volume = 0.01; // Very low volume to avoid audio feedback
+
       // Create audio context and get audio stream from video
       const audioContext = new AudioContext();
 
@@ -56,8 +61,6 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       // Connect audio properly
       source.connect(destination);
-      // Don't connect to destination to avoid echo during recording
-      // source.connect(audioContext.destination);
 
       // Combine video and audio streams
       const videoStream = canvas.captureStream(30);
