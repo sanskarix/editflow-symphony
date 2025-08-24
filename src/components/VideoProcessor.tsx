@@ -46,7 +46,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       canvas.height = video.videoHeight;
 
       // Temporarily unmute video for audio processing
-      const wasOriginallyMuted = video.muted;
+      wasOriginallyMuted = video.muted;
       video.muted = false;
       video.volume = 0.01; // Very low volume to avoid audio feedback
 
