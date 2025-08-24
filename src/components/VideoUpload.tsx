@@ -11,6 +11,7 @@ interface VideoUploadProps {
 
 export const VideoUpload = ({ onVideoSelect, selectedVideo, onRemoveVideo }: VideoUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -87,27 +88,44 @@ export const VideoUpload = ({ onVideoSelect, selectedVideo, onRemoveVideo }: Vid
   return (
     <div className="space-y-6">
       <div
-        className={`upload-zone glass-strong rounded-xl p-12 border-2 border-dashed text-center cursor-pointer ${
-          isDragOver ? 'border-primary bg-primary/5 scale-105' : 'border-glass-border'
+        className={`upload-zone glass-strong rounded-xl p-12 border-2 border-dashed text-center cursor-pointer transition-all duration-300 ${
+          isDragOver
+            ? 'border-primary bg-primary/10 scale-105 shadow-glow transform rotate-1'
+            : isHovering
+            ? 'border-primary/50 bg-primary/5 scale-102 shadow-lg'
+            : 'border-glass-border hover:border-primary/30'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleUploadClick}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center">
-            <Upload className="w-8 h-8 text-primary-foreground" />
+          <div className={`w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center transition-transform duration-300 ${
+            isDragOver ? 'scale-110 rotate-6' : isHovering ? 'scale-105' : ''
+          }`}>
+            <Upload className={`w-8 h-8 text-primary-foreground transition-transform duration-300 ${
+              isDragOver ? 'animate-bounce' : ''
+            }`} />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Upload Your Video
+            <h3 className={`text-xl font-semibold text-foreground mb-2 transition-colors duration-300 ${
+              isDragOver ? 'text-primary' : ''
+            }`}>
+              {isDragOver ? 'Drop Your Video Here!' : 'Upload Your Video'}
             </h3>
-            <p className="text-muted-foreground mb-4">
-              Drag and drop your video file here, or click to browse
+            <p className={`text-muted-foreground mb-4 transition-colors duration-300 ${
+              isDragOver ? 'text-primary/80' : ''
+            }`}>
+              {isDragOver
+                ? 'Release to upload your video file'
+                : 'Drag and drop your video file here, or click to browse'
+              }
             </p>
             <p className="text-sm text-muted-foreground">
-              Supports MP4, MOV, AVI, and more
+              Supports MP4, MOV, AVI, WebM, and more • Max size: 500MB
             </p>
           </div>
         </div>
