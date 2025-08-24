@@ -26,6 +26,8 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
     setIsProcessing(true);
     setProgress(0);
+    setDownloadExtension('mp4'); // Reset to default
+    setActualExtension('webm'); // Reset to default
     
     const video = videoRef.current;
     const canvas = canvasRef.current;
