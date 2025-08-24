@@ -42,7 +42,7 @@ const effectsConfig = [
   {
     id: 'lensFlare' as keyof VideoEffects,
     name: 'Dynamic Lens Flare',
-    description: 'Adds a moving cinematic lens flare effect',
+    description: 'Cinematic flare with quality preservation',
     icon: Sparkles,
     color: 'text-purple-400',
   },
