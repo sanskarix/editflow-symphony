@@ -83,18 +83,19 @@ export const EffectsPanel = ({ effects, onEffectChange, onStartProcessing, isPro
           return (
             <div
               key={effect.id}
-              className={`glass-strong rounded-xl p-6 border transition-smooth ${
-                isSelected 
-                  ? 'border-primary bg-primary/5 shadow-glow' 
-                  : 'border-glass-border'
-              } ${isAnimating ? 'transition-bounce' : ''}`}
+              className={`glass-strong rounded-xl p-6 border transition-all duration-300 hover:scale-102 cursor-pointer ${
+                isSelected
+                  ? 'border-primary bg-primary/10 shadow-glow transform scale-102'
+                  : 'border-glass-border hover:border-primary/50 hover:shadow-lg'
+              } ${isAnimating ? 'animate-pulse' : ''}`}
+              onClick={() => handleEffectToggle(effect.id, !isSelected)}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  isSelected ? 'bg-gradient-primary' : 'bg-secondary'
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                  isSelected ? 'bg-gradient-primary shadow-glow scale-110' : 'bg-secondary hover:bg-secondary/80'
                 }`}>
-                  <Icon className={`w-6 h-6 ${
-                    isSelected ? 'text-primary-foreground' : effect.color
+                  <Icon className={`w-6 h-6 transition-all duration-300 ${
+                    isSelected ? 'text-primary-foreground animate-pulse' : effect.color
                   }`} />
                 </div>
                 
@@ -137,7 +138,7 @@ export const EffectsPanel = ({ effects, onEffectChange, onStartProcessing, isPro
           size="xl"
           onClick={onStartProcessing}
           disabled={!hasEffectsSelected || isProcessing}
-          className="w-full max-w-md"
+          className="w-full max-w-md transition-all duration-300 hover:scale-105 active:scale-95"
         >
           {isProcessing ? 'Processing Video...' : 'Start Processing'}
         </Button>
