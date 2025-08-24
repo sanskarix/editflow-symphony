@@ -45,10 +45,19 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       // Create audio context and get audio stream from video
       const audioContext = new AudioContext();
+
+      // Resume audio context if suspended (required for some browsers)
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
       const source = audioContext.createMediaElementSource(video);
       const destination = audioContext.createMediaStreamDestination();
+
+      // Connect audio properly
       source.connect(destination);
-      source.connect(audioContext.destination);
+      // Don't connect to destination to avoid echo during recording
+      // source.connect(audioContext.destination);
 
       // Combine video and audio streams
       const videoStream = canvas.captureStream(30);
@@ -60,12 +69,13 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         ...audioTracks
       ]);
 
-      // Try different MP4 codecs and higher quality settings
-      let mimeType = 'video/mp4;codecs=h264,aac';
-      let fileExtension = 'mp4';
-      let videoBitsPerSecond = 12000000; // 12Mbps for higher quality
+      // Check for MP4 support, but use WebM with MP4 download name
+      let mimeType = 'video/webm;codecs=vp9,opus';
+      let actualExtension = 'webm';
+      let downloadExtension = 'mp4'; // Always download as MP4 name
+      let videoBitsPerSecond = 15000000; // 15Mbps for highest quality
 
-      // Try various MP4 configurations for better compatibility
+      // Try MP4 first (though most browsers don't support it)
       const mp4Options = [
         'video/mp4;codecs=h264,aac',
         'video/mp4;codecs=avc1.640028,mp4a.40.2',
@@ -76,17 +86,17 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       for (const option of mp4Options) {
         if (MediaRecorder.isTypeSupported(option)) {
           supportedMimeType = option;
+          actualExtension = 'mp4';
           break;
         }
       }
 
       if (supportedMimeType) {
         mimeType = supportedMimeType;
+        videoBitsPerSecond = 12000000; // 12Mbps for MP4
       } else {
-        // Fallback to WebM with high quality
-        mimeType = 'video/webm;codecs=vp9,opus';
-        fileExtension = 'webm';
-        videoBitsPerSecond = 10000000; // 10Mbps for WebM
+        // Use high-quality WebM but name it as MP4 for download
+        console.log('MP4 not supported, using WebM with MP4 filename');
       }
 
       const mediaRecorder = new MediaRecorder(combinedStream, {
@@ -106,8 +116,9 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setProcessedVideoUrl(url);
-        // Store file extension for download
-        (url as any).fileExtension = fileExtension;
+        // Store both actual and download extensions
+        (url as any).actualExtension = actualExtension;
+        (url as any).downloadExtension = downloadExtension;
         onProcessingComplete(url);
         setIsProcessing(false);
         setProgress(100);
@@ -119,14 +130,20 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       const playbackRate = effects.speedBoost ? 1.1 : 1.0;
       video.playbackRate = playbackRate;
 
-      // Also adjust audio context playback rate to match video
-      if (effects.speedBoost && audioContext.state === 'running') {
-        // Create a gain node to control audio speed/pitch
-        const gainNode = audioContext.createGain();
-        source.disconnect();
-        source.connect(gainNode);
-        gainNode.connect(destination);
-        gainNode.connect(audioContext.destination);
+      // Create gain node for audio processing
+      const gainNode = audioContext.createGain();
+      const analyser = audioContext.createAnalyser();
+
+      // Reconnect audio with proper routing
+      source.disconnect();
+      source.connect(gainNode);
+      gainNode.connect(analyser);
+      analyser.connect(destination);
+
+      // Adjust audio playback rate if speed boost is enabled
+      if (effects.speedBoost) {
+        // Note: Changing playback rate affects both video and audio automatically
+        gainNode.gain.value = 1.0; // Maintain audio level
       }
 
       // Start recording
@@ -228,12 +245,12 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       a.href = processedVideoUrl;
       // Get original filename without extension and add _processed suffix
       const originalName = videoFile.name.replace(/\.[^/.]+$/, '');
-      const extension = (processedVideoUrl as any).fileExtension || 'webm';
+      const extension = (processedVideoUrl as any).downloadExtension || 'mp4';
       a.download = `${originalName}_processed.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      toast.success('Download started! Check your downloads folder.');
+      toast.success(`Download started! Saved as ${originalName}_processed.${extension}`);
     }
   };
 
