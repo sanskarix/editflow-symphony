@@ -21,7 +21,7 @@ const effectsConfig = [
   {
     id: 'lineOverlay' as keyof VideoEffects,
     name: 'Subtle Line Overlay',
-    description: 'Adds a horizontal glass-like line in the middle',
+    description: 'Quality-preserved horizontal enhancement line',
     icon: Minus,
     color: 'text-blue-400',
   },
