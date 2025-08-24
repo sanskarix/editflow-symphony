@@ -121,8 +121,10 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         mimeType = supportedMimeType;
         videoBitsPerSecond = 18000000; // 18Mbps for MP4
       } else {
-        // Use high-quality WebM but name it as MP4 for download
-        console.log('MP4 not supported, using WebM with MP4 filename');
+        // Use highest-quality WebM settings
+        mimeType = 'video/webm;codecs=vp9,opus';
+        videoBitsPerSecond = 25000000; // Very high bitrate for WebM
+        console.log('MP4 not supported, using high-quality WebM with MP4 filename');
       }
 
       const mediaRecorder = new MediaRecorder(combinedStream, {
