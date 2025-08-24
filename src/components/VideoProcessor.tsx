@@ -62,8 +62,14 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       video.muted = false;
       video.volume = 1.0; // Full volume for proper audio capture
 
+      // Close existing audio context if any
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        await audioContextRef.current.close();
+      }
+
       // Create audio context and get audio stream from video
       const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
 
       // Resume audio context if suspended (required for some browsers)
       if (audioContext.state === 'suspended') {
