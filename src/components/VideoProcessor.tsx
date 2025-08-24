@@ -286,7 +286,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       
       // Animation loop variables
       let frameCount = 0;
-      const maxFrames = Math.floor(video.duration * targetFrameRate); // Use calculated target frame rate
+      const maxFrames = Math.floor(video.duration * detectedFrameRate); // Use detected frame rate
       
       const processFrame = () => {
         if (video.ended) {
