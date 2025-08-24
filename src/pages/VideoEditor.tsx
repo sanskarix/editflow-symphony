@@ -116,17 +116,6 @@ export default function VideoEditor() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-card/30 mt-16">
-        <div className="container mx-auto px-6 py-8">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              © 2024 VideoFX Studio. Transform your videos with professional effects.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
