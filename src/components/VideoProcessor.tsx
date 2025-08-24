@@ -235,6 +235,10 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     if (videoRef.current) {
       const video = videoRef.current;
       video.src = URL.createObjectURL(videoFile);
+      video.muted = false; // Ensure audio is not muted for processing
+      video.volume = 1.0; // Set full volume
+      video.preload = 'metadata';
+      video.crossOrigin = 'anonymous';
       video.load();
     }
   }, [videoFile]);
