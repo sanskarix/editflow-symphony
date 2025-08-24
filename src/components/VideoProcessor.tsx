@@ -157,10 +157,6 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       let currentDownloadExtension = 'mp4';
       let videoBitsPerSecond = targetVideoBitrateKbps * 1000; // Convert to bps
 
-      // Use original frame rate or cap at 30fps to avoid bloat
-      const originalFrameRate = 30; // Default fallback
-      const targetFrameRate = Math.min(originalFrameRate, 30);
-
       // Combine video and audio streams with optimized quality
       const videoStream = canvas.captureStream(targetFrameRate);
       const audioTracks = destination.stream.getAudioTracks();
