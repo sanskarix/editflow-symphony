@@ -196,19 +196,19 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       if (supportedMimeType) {
         mimeType = supportedMimeType;
-        videoBitsPerSecond = 18000000; // 18Mbps for MP4
+        // Keep the calculated smart bitrate for MP4
+        console.log('Using MP4 encoding with smart bitrate');
       } else {
-        // Use highest-quality WebM settings
+        // Use WebM with same smart bitrate
         mimeType = 'video/webm;codecs=vp9,opus';
-        videoBitsPerSecond = 25000000; // Very high bitrate for WebM
-        console.log('MP4 not supported, using high-quality WebM with MP4 filename');
+        console.log('MP4 not supported, using WebM with smart bitrate and MP4 filename');
       }
 
       const mediaRecorder = new MediaRecorder(combinedStream, {
         mimeType: mimeType,
         videoBitsPerSecond: videoBitsPerSecond,
-        audioBitsPerSecond: 320000, // High quality audio
-        bitsPerSecond: videoBitsPerSecond + 320000, // Total bitrate
+        audioBitsPerSecond: 128000, // Optimized audio quality
+        bitsPerSecond: videoBitsPerSecond + 128000, // Total bitrate
       });
 
       const chunks: Blob[] = [];
@@ -273,7 +273,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       
       // Animation loop variables
       let frameCount = 0;
-      const maxFrames = Math.floor(video.duration * 60); // Higher frame rate estimate
+      const maxFrames = Math.floor(video.duration * targetFrameRate); // Use actual target frame rate
       
       const processFrame = () => {
         if (video.ended) {
