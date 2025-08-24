@@ -15,6 +15,8 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedVideoUrl, setProcessedVideoUrl] = useState<string | null>(null);
+  const [downloadExtension, setDownloadExtension] = useState<string>('mp4');
+  const [actualExtension, setActualExtension] = useState<string>('webm');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -185,9 +187,9 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setProcessedVideoUrl(url);
-        // Store both actual and download extensions
-        (url as any).actualExtension = actualExtension;
-        (url as any).downloadExtension = downloadExtension;
+        // Store extension information in state
+        setActualExtension(actualExtension);
+        setDownloadExtension(downloadExtension);
         onProcessingComplete(url);
         setIsProcessing(false);
         setProgress(100);
@@ -367,7 +369,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       a.href = processedVideoUrl;
       // Get original filename without extension and add _processed suffix
       const originalName = videoFile.name.replace(/\.[^/.]+$/, '');
-      const extension = (processedVideoUrl as any).downloadExtension || 'mp4';
+      const extension = downloadExtension;
       a.download = `${originalName}_processed.${extension}`;
       document.body.appendChild(a);
       a.click();
