@@ -272,7 +272,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       {/* Hidden video and canvas elements for processing */}
       <div className="hidden">
-        <video ref={videoRef} muted={false} controls={false} />
+        <video ref={videoRef} muted />
         <canvas ref={canvasRef} />
       </div>
 
