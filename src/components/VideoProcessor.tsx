@@ -69,7 +69,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       // Set playback speed if speed boost is enabled
       if (effects.speedBoost) {
-        video.playbackRate = 1.2;
+        video.playbackRate = 1.1;
       } else {
         video.playbackRate = 1.0;
       }
@@ -92,21 +92,17 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
         // Clear canvas and draw video frame (maintains aspect ratio)
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Apply brightness and saturation effect
+        
+        // Apply brightness and saturation effect (optimized for better performance)
         if (effects.brightnessBoost) {
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imageData.data;
-          
-          for (let i = 0; i < data.length; i += 4) {
-            // Increase brightness and saturation
-            data[i] = Math.min(255, data[i] * 1.1);     // Red
-            data[i + 1] = Math.min(255, data[i + 1] * 1.1); // Green  
-            data[i + 2] = Math.min(255, data[i + 2] * 1.1); // Blue
-          }
-          
-          ctx.putImageData(imageData, 0, 0);
+          ctx.filter = 'brightness(1.1) saturate(1.1)';
+        }
+        
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Reset filter after drawing
+        if (effects.brightnessBoost) {
+          ctx.filter = 'none';
         }
 
         // Add line overlay effect
@@ -123,16 +119,22 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         // Add lens flare effect
         if (effects.lensFlare) {
           const time = frameCount / 30; // Convert to seconds
-          const flareX = (Math.sin(time * 0.5) + 1) * canvas.width / 2;
-          const flareY = (Math.cos(time * 0.3) + 1) * canvas.height / 2;
+          // Horizontal movement - left to right and back with smooth oscillation
+          const flareX = (Math.sin(time * 0.4) * 0.5 + 0.5) * canvas.width;
+          const flareY = canvas.height * 0.4; // Keep it in upper portion
           
-          const flareGradient = ctx.createRadialGradient(flareX, flareY, 0, flareX, flareY, 100);
-          flareGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-          flareGradient.addColorStop(0.3, 'rgba(255, 200, 100, 0.4)');
+          // Larger, more subtle lens flare
+          const flareRadius = Math.min(canvas.width, canvas.height) * 0.4;
+          const flareGradient = ctx.createRadialGradient(flareX, flareY, 0, flareX, flareY, flareRadius);
+          flareGradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');  // 50% opacity center
+          flareGradient.addColorStop(0.2, 'rgba(255, 220, 150, 0.3)'); // Warm tone
+          flareGradient.addColorStop(0.5, 'rgba(255, 200, 100, 0.1)'); // Subtle outer glow
           flareGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
           
+          ctx.globalCompositeOperation = 'screen'; // Blend mode for realistic flare
           ctx.fillStyle = flareGradient;
-          ctx.fillRect(flareX - 100, flareY - 100, 200, 200);
+          ctx.fillRect(flareX - flareRadius, flareY - flareRadius, flareRadius * 2, flareRadius * 2);
+          ctx.globalCompositeOperation = 'source-over'; // Reset blend mode
         }
 
         frameCount++;
