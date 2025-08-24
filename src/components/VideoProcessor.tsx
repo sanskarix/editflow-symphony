@@ -63,11 +63,15 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       const videoResolution = video.videoWidth * video.videoHeight;
       const originalBitrate = (videoFile.size * 8) / videoDuration / 1000; // kbps
 
+      // Calculate target frame rate (cap at 30fps to prevent bloat)
+      const targetFrameRate = 30; // Cap at 30fps for optimal file size
+
       console.log('Input video analysis:');
       console.log('- File size:', inputFileSizeMB.toFixed(2), 'MB');
       console.log('- Duration:', videoDuration.toFixed(2), 's');
       console.log('- Resolution:', video.videoWidth + 'x' + video.videoHeight);
       console.log('- Estimated original bitrate:', originalBitrate.toFixed(0), 'kbps');
+      console.log('- Target frame rate:', targetFrameRate, 'fps');
 
       // Temporarily unmute video for audio processing
       wasOriginallyMuted = video.muted;
