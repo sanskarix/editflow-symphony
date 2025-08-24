@@ -164,15 +164,15 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
           ctx.filter = 'none';
         }
 
-        // Add line overlay effect
+        // Add line overlay effect (doubled thickness)
         if (effects.lineOverlay) {
-          const gradient = ctx.createLinearGradient(0, canvas.height / 2 - 1, 0, canvas.height / 2 + 1);
+          const gradient = ctx.createLinearGradient(0, canvas.height / 2 - 2, 0, canvas.height / 2 + 2);
           gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
           gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
           gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-          
+
           ctx.fillStyle = gradient;
-          ctx.fillRect(0, canvas.height / 2 - 1, canvas.width, 2);
+          ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
         }
 
         // Add lens flare effect
