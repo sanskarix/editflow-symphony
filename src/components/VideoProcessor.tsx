@@ -48,7 +48,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       // Temporarily unmute video for audio processing
       wasOriginallyMuted = video.muted;
       video.muted = false;
-      video.volume = 0.01; // Very low volume to avoid audio feedback
+      video.volume = 1.0; // Full volume for proper audio capture
 
       // Create audio context and get audio stream from video
       const audioContext = new AudioContext();
@@ -64,9 +64,12 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       // Connect audio properly
       source.connect(destination);
 
-      // Combine video and audio streams
-      const videoStream = canvas.captureStream(30);
+      // Combine video and audio streams with higher quality
+      const videoStream = canvas.captureStream(60); // Higher frame rate for better quality
       const audioTracks = destination.stream.getAudioTracks();
+
+      console.log('Audio tracks found:', audioTracks.length);
+      console.log('Video tracks found:', videoStream.getVideoTracks().length);
       
       // Create combined stream with both video and audio
       const combinedStream = new MediaStream([
@@ -78,7 +81,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       let mimeType = 'video/webm;codecs=vp9,opus';
       let actualExtension = 'webm';
       let downloadExtension = 'mp4'; // Always download as MP4 name
-      let videoBitsPerSecond = 15000000; // 15Mbps for highest quality
+      let videoBitsPerSecond = 20000000; // 20Mbps for highest quality
 
       // Try MP4 first (though most browsers don't support it)
       const mp4Options = [
@@ -98,7 +101,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       if (supportedMimeType) {
         mimeType = supportedMimeType;
-        videoBitsPerSecond = 12000000; // 12Mbps for MP4
+        videoBitsPerSecond = 18000000; // 18Mbps for MP4
       } else {
         // Use high-quality WebM but name it as MP4 for download
         console.log('MP4 not supported, using WebM with MP4 filename');
@@ -108,6 +111,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         mimeType: mimeType,
         videoBitsPerSecond: videoBitsPerSecond,
         audioBitsPerSecond: 320000, // High quality audio
+        bitsPerSecond: videoBitsPerSecond + 320000, // Total bitrate
       });
 
       const chunks: Blob[] = [];
