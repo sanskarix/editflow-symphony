@@ -46,16 +46,18 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         }
       });
 
-      // Set canvas dimensions to match video exactly (preserving aspect ratio)
+      // Set canvas dimensions to exactly match original video (perfect quality preservation)
       canvas.width = video.videoWidth || 1920;
       canvas.height = video.videoHeight || 1080;
 
-      // Set canvas style for high DPI displays
+      // Optimize canvas for quality and performance
       canvas.style.width = `${canvas.width}px`;
       canvas.style.height = `${canvas.height}px`;
 
-      console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
-      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+      console.log('Quality-matched canvas setup:');
+      console.log('- Canvas dimensions:', canvas.width, 'x', canvas.height);
+      console.log('- Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+      console.log('- Pixel ratio match:', canvas.width === video.videoWidth && canvas.height === video.videoHeight);
 
       // Analyze input video characteristics for quality matching
       const inputFileSizeMB = videoFile.size / (1024 * 1024);
@@ -433,7 +435,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          {isProcessing ? '🎬 Processing Your Video' : processedVideoUrl ? '✨ Processing Complete!' : '🚀 Ready to Process'}
+          {isProcessing ? '���� Processing Your Video' : processedVideoUrl ? '✨ Processing Complete!' : '🚀 Ready to Process'}
         </h2>
         <p className="text-muted-foreground">
           {isProcessing ? 'Applying effects and enhancing quality...' :
