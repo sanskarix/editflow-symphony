@@ -28,7 +28,7 @@ const effectsConfig = [
   {
     id: 'speedBoost' as keyof VideoEffects,
     name: 'Speed Enhancement',
-    description: 'Increases video speed to 1.2x for better flow',
+    description: 'Increases video speed to 1.1x with synchronized audio',
     icon: Zap,
     color: 'text-yellow-400',
   },
