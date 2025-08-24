@@ -220,8 +220,8 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       const mediaRecorder = new MediaRecorder(combinedStream, {
         mimeType: mimeType,
         videoBitsPerSecond: videoBitsPerSecond,
-        audioBitsPerSecond: 128000, // Optimized audio quality
-        bitsPerSecond: videoBitsPerSecond + 128000, // Total bitrate
+        audioBitsPerSecond: targetAudioBitrateKbps * 1000, // Match original audio quality
+        bitsPerSecond: videoBitsPerSecond + (targetAudioBitrateKbps * 1000), // Total bitrate
       });
 
       const chunks: Blob[] = [];
