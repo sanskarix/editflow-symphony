@@ -125,6 +125,11 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         onProcessingComplete(url);
         setIsProcessing(false);
         setProgress(100);
+
+        // Restore original muted state
+        video.muted = wasOriginallyMuted;
+        video.volume = 1.0;
+
         audioContext.close(); // Clean up audio context
         toast.success('Video processing completed successfully!');
       };
