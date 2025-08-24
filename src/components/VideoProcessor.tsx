@@ -274,10 +274,13 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         console.log('Final audio tracks:', tracks.length, tracks.map(t => t.enabled));
       }, 100);
 
-      // Start recording with error handling
+      // Start recording with quality-optimized settings
       try {
-        mediaRecorder.start(100); // Request data every 100ms for smoother recording
-        console.log('MediaRecorder started successfully');
+        // Use longer intervals for better quality and efficiency
+        const dataInterval = Math.max(1000 / detectedFrameRate * 2, 100); // 2 frames worth of data
+        mediaRecorder.start(dataInterval);
+        console.log('MediaRecorder started with quality-optimized settings');
+        console.log('- Data interval:', dataInterval, 'ms');
       } catch (err) {
         console.error('Failed to start MediaRecorder:', err);
         throw new Error('Failed to start video recording');
@@ -435,7 +438,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          {isProcessing ? '���� Processing Your Video' : processedVideoUrl ? '✨ Processing Complete!' : '🚀 Ready to Process'}
+          {isProcessing ? '🎬 Processing Your Video' : processedVideoUrl ? '✨ Processing Complete!' : '🚀 Ready to Process'}
         </h2>
         <p className="text-muted-foreground">
           {isProcessing ? 'Applying effects and enhancing quality...' :
