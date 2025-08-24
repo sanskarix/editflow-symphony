@@ -29,6 +29,8 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    let wasOriginallyMuted = true; // Default value
+
     try {
       // Wait for video metadata to load
       await new Promise((resolve) => {
