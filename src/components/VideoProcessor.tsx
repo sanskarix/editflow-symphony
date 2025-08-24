@@ -41,9 +41,16 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         }
       });
 
-      // Set canvas dimensions to match video (preserving aspect ratio)
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      // Set canvas dimensions to match video exactly (preserving aspect ratio)
+      canvas.width = video.videoWidth || 1920;
+      canvas.height = video.videoHeight || 1080;
+
+      // Set canvas style for high DPI displays
+      canvas.style.width = `${canvas.width}px`;
+      canvas.style.height = `${canvas.height}px`;
+
+      console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
 
       // Temporarily unmute video for audio processing
       wasOriginallyMuted = video.muted;
@@ -144,21 +151,19 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       const playbackRate = effects.speedBoost ? 1.1 : 1.0;
       video.playbackRate = playbackRate;
 
-      // Create gain node for audio processing
+      // Create audio processing chain
       const gainNode = audioContext.createGain();
-      const analyser = audioContext.createAnalyser();
+      gainNode.gain.value = 1.0; // Full audio level
 
-      // Reconnect audio with proper routing
-      source.disconnect();
+      // Simple direct connection for better compatibility
       source.connect(gainNode);
-      gainNode.connect(analyser);
-      analyser.connect(destination);
+      gainNode.connect(destination);
 
-      // Adjust audio playback rate if speed boost is enabled
-      if (effects.speedBoost) {
-        // Note: Changing playback rate affects both video and audio automatically
-        gainNode.gain.value = 1.0; // Maintain audio level
-      }
+      // Verify audio tracks are properly connected
+      setTimeout(() => {
+        const tracks = destination.stream.getAudioTracks();
+        console.log('Final audio tracks:', tracks.length, tracks.map(t => t.enabled));
+      }, 100);
 
       // Start recording
       mediaRecorder.start();
@@ -168,7 +173,7 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       
       // Animation loop variables
       let frameCount = 0;
-      const maxFrames = Math.floor(video.duration * 30); // Estimate frames
+      const maxFrames = Math.floor(video.duration * 60); // Higher frame rate estimate
       
       const processFrame = () => {
         if (video.ended) {
@@ -179,9 +184,13 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         // Clear canvas and draw video frame with high quality settings
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Set high quality rendering
+        // Set highest quality rendering
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
+
+        // Preserve exact pixel data
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.textBaseline = 'top';
 
         // Apply brightness and saturation effect
         if (effects.brightnessBoost) {
