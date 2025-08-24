@@ -319,6 +319,12 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         video.muted = wasOriginallyMuted;
         video.volume = 1.0;
       }
+
+      // Clean up audio context on error
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
     }
   }, [videoFile, effects, onProcessingComplete, isProcessing]);
 
