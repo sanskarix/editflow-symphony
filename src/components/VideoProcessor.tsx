@@ -52,6 +52,10 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
       console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
 
+      // Check if video has audio
+      console.log('Video duration:', video.duration);
+      console.log('Video ready state:', video.readyState);
+
       // Temporarily unmute video for audio processing
       wasOriginallyMuted = video.muted;
       video.muted = false;
