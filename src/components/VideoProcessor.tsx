@@ -57,9 +57,17 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
       console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
 
-      // Check if video has audio
-      console.log('Video duration:', video.duration);
-      console.log('Video ready state:', video.readyState);
+      // Calculate smart encoding settings based on input video
+      const inputFileSizeMB = videoFile.size / (1024 * 1024);
+      const videoDuration = video.duration;
+      const videoResolution = video.videoWidth * video.videoHeight;
+      const originalBitrate = (videoFile.size * 8) / videoDuration / 1000; // kbps
+
+      console.log('Input video analysis:');
+      console.log('- File size:', inputFileSizeMB.toFixed(2), 'MB');
+      console.log('- Duration:', videoDuration.toFixed(2), 's');
+      console.log('- Resolution:', video.videoWidth + 'x' + video.videoHeight);
+      console.log('- Estimated original bitrate:', originalBitrate.toFixed(0), 'kbps');
 
       // Temporarily unmute video for audio processing
       wasOriginallyMuted = video.muted;
@@ -119,25 +127,50 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       // Connect audio properly
       source.connect(destination);
 
+      // Calculate smart bitrates to avoid file bloat
+      // Use 1.2x original bitrate or reasonable defaults based on resolution
+      let targetVideoBitrateKbps;
+      if (videoResolution <= 640 * 480) {
+        // SD: 1-2 Mbps
+        targetVideoBitrateKbps = Math.min(originalBitrate * 1.2, 2000);
+      } else if (videoResolution <= 1280 * 720) {
+        // HD: 2-4 Mbps
+        targetVideoBitrateKbps = Math.min(originalBitrate * 1.2, 4000);
+      } else if (videoResolution <= 1920 * 1080) {
+        // Full HD: 4-6 Mbps
+        targetVideoBitrateKbps = Math.min(originalBitrate * 1.2, 6000);
+      } else {
+        // 4K+: 8-12 Mbps
+        targetVideoBitrateKbps = Math.min(originalBitrate * 1.2, 12000);
+      }
+
+      // Ensure minimum quality
+      targetVideoBitrateKbps = Math.max(targetVideoBitrateKbps, 1000); // At least 1 Mbps
+
       // Check for MP4 support, but use WebM with MP4 download name
       let mimeType = 'video/webm;codecs=vp9,opus';
       let currentActualExtension = 'webm';
-      let currentDownloadExtension = 'mp4'; // Always download as MP4 name
-      let videoBitsPerSecond = 20000000; // 20Mbps for highest quality
+      let currentDownloadExtension = 'mp4';
+      let videoBitsPerSecond = targetVideoBitrateKbps * 1000; // Convert to bps
 
-      // Combine video and audio streams with higher quality
-      const videoStream = canvas.captureStream(60); // Higher frame rate for better quality
+      // Use original frame rate or cap at 30fps to avoid bloat
+      const originalFrameRate = 30; // Default fallback
+      const targetFrameRate = Math.min(originalFrameRate, 30);
+
+      // Combine video and audio streams with optimized quality
+      const videoStream = canvas.captureStream(targetFrameRate);
       const audioTracks = destination.stream.getAudioTracks();
 
       console.log('Audio tracks found:', audioTracks.length);
       console.log('Video tracks found:', videoStream.getVideoTracks().length);
 
       // Log quality settings
-      console.log('Recording settings:');
+      console.log('Optimized recording settings:');
       console.log('- MIME type:', mimeType);
-      console.log('- Video bitrate:', videoBitsPerSecond);
-      console.log('- Audio bitrate: 320000');
-      console.log('- Frame rate: 60fps');
+      console.log('- Video bitrate:', (videoBitsPerSecond/1000).toFixed(0), 'kbps');
+      console.log('- Audio bitrate: 128 kbps');
+      console.log('- Frame rate:', targetFrameRate, 'fps');
+      console.log('- Expected output size: ~', ((videoBitsPerSecond + 128000) * videoDuration / 8 / 1024 / 1024).toFixed(1), 'MB');
 
       // Create combined stream with both video and audio
       const combinedStream = new MediaStream([
