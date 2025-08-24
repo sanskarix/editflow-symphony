@@ -81,6 +81,13 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
 
       console.log('Audio tracks found:', audioTracks.length);
       console.log('Video tracks found:', videoStream.getVideoTracks().length);
+
+      // Log quality settings
+      console.log('Recording settings:');
+      console.log('- MIME type:', mimeType);
+      console.log('- Video bitrate:', videoBitsPerSecond);
+      console.log('- Audio bitrate: 320000');
+      console.log('- Frame rate: 60fps');
       
       // Create combined stream with both video and audio
       const combinedStream = new MediaStream([
