@@ -50,9 +50,10 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       canvas.width = video.videoWidth || 1920;
       canvas.height = video.videoHeight || 1080;
 
-      // Optimize canvas for quality and performance
-      canvas.style.width = `${canvas.width}px`;
-      canvas.style.height = `${canvas.height}px`;
+      // Optimize canvas for quality and performance - remove any pixelation
+      canvas.style.width = 'auto';
+      canvas.style.height = 'auto';
+      canvas.style.imageRendering = 'auto'; // Ensure smooth rendering, not pixelated
 
       console.log('Quality-matched canvas setup:');
       console.log('- Canvas dimensions:', canvas.width, 'x', canvas.height);
@@ -150,9 +151,9 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
       // Connect audio properly
       source.connect(destination);
 
-      // Smart quality matching - preserve original characteristics with minimal overhead
-      // Use original bitrates with slight optimization (5-10% efficiency gain)
-      let targetVideoBitrateKbps = estimatedVideoBitrate * 0.95; // 5% more efficient encoding
+      // Smart quality matching - preserve original characteristics exactly
+      // Match original bitrates exactly to preserve quality
+      let targetVideoBitrateKbps = estimatedVideoBitrate * 1.02; // Slight boost to ensure no quality loss
       let targetAudioBitrateKbps = Math.max(estimatedAudioBitrate, 128); // Maintain audio quality
 
       // Quality safeguards - ensure we don't go below reasonable minimums
@@ -309,9 +310,9 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         // Save context state for effects
         ctx.save();
 
-        // Apply subtle brightness and saturation effect (reduced intensity for quality preservation)
+        // Apply exact 5% brightness and vibrance boost as requested
         if (effects.brightnessBoost) {
-          ctx.filter = 'brightness(1.1) saturate(1.08) contrast(1.02)'; // More subtle to preserve original look
+          ctx.filter = 'brightness(1.05) saturate(1.05)'; // Exactly 5% boost as requested
         }
 
         // Draw video frame at exact dimensions with optimal quality
@@ -320,39 +321,40 @@ export const VideoProcessor = ({ videoFile, effects, onProcessingComplete }: Vid
         // Restore context state
         ctx.restore();
 
-        // Add line overlay effect (doubled thickness with quality preservation)
+        // Add simple single line overlay as requested
         if (effects.lineOverlay) {
           ctx.save();
-          const gradient = ctx.createLinearGradient(0, canvas.height / 2 - 2, 0, canvas.height / 2 + 2);
-          gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-          gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.25)'); // Slightly more subtle
-          gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.lineWidth = 2;
+          ctx.globalCompositeOperation = 'overlay';
 
-          ctx.globalCompositeOperation = 'screen'; // Better blending for quality
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
+          // Draw single horizontal line across the middle
+          ctx.beginPath();
+          ctx.moveTo(0, canvas.height / 2);
+          ctx.lineTo(canvas.width, canvas.height / 2);
+          ctx.stroke();
           ctx.restore();
         }
 
-        // Add lens flare effect with quality preservation
+        // Add one chosen lens flare overlay as requested
         if (effects.lensFlare) {
           ctx.save();
-          const time = frameCount / detectedFrameRate; // Use actual frame rate for timing
-          // Horizontal movement - left to right and back with smooth oscillation
-          const flareX = (Math.sin(time * 0.4) * 0.5 + 0.5) * canvas.width;
-          const flareY = canvas.height * 0.4; // Keep it in upper portion
+          // Fixed position lens flare in upper right area
+          const flareX = canvas.width * 0.75;
+          const flareY = canvas.height * 0.25;
 
-          // Quality-optimized lens flare
-          const flareRadius = Math.min(canvas.width, canvas.height) * 0.35; // Slightly smaller for subtlety
+          // Simple, high-quality lens flare
+          const flareRadius = Math.min(canvas.width, canvas.height) * 0.15;
           const flareGradient = ctx.createRadialGradient(flareX, flareY, 0, flareX, flareY, flareRadius);
-          flareGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');  // Reduced opacity for quality
-          flareGradient.addColorStop(0.2, 'rgba(255, 220, 150, 0.25)'); // More subtle warm tone
-          flareGradient.addColorStop(0.5, 'rgba(255, 200, 100, 0.08)'); // Very subtle outer glow
+          flareGradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+          flareGradient.addColorStop(0.3, 'rgba(255, 220, 100, 0.3)');
           flareGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
-          ctx.globalCompositeOperation = 'screen'; // Blend mode for realistic flare
+          ctx.globalCompositeOperation = 'screen';
           ctx.fillStyle = flareGradient;
-          ctx.fillRect(flareX - flareRadius, flareY - flareRadius, flareRadius * 2, flareRadius * 2);
+          ctx.beginPath();
+          ctx.arc(flareX, flareY, flareRadius, 0, Math.PI * 2);
+          ctx.fill();
           ctx.restore();
         }
 
