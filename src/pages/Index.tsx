@@ -1,7 +1,7 @@
-import VideoEditor from "./VideoEditor";
+import Home from "./Home";
 
 const Index = () => {
-  return <VideoEditor />;
+  return <Home />;
 };
 
 export default Index;

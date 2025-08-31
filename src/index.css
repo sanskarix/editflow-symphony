@@ -131,7 +131,7 @@
     transition: var(--transition-bounce);
   }
   
-  /* Custom animations */
+  /* Custom animations - Apple-like smooth effects */
   .upload-zone {
     transition: var(--transition-smooth);
   }
@@ -147,6 +147,46 @@
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
+  /* Scroll-triggered fade in animations */
+  .fade-in-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .animate-fade-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Apple-like hover effects */
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px hsl(var(--primary) / 0.25);
+  }
+  
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Enhanced button hover effects */
+  .btn-hover-scale {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .btn-hover-scale:hover {
+    transform: scale(1.02);
+  }
+  
+  .btn-hover-scale:active {
+    transform: scale(0.98);
+  }
+  
   @keyframes pulse {
     0%, 100% {
       opacity: 1;
@@ -156,22 +196,31 @@
     }
   }
   
-  /* Lens flare animation */
-  @keyframes lens-flare {
+  /* Parallax and scroll effects */
+  .parallax-bg {
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  
+  /* Loading animations */
+  @keyframes shimmer {
     0% {
-      transform: translateX(-100px) translateY(-50px);
-      opacity: 0;
-    }
-    50% {
-      opacity: 1;
+      background-position: -468px 0;
     }
     100% {
-      transform: translateX(100px) translateY(50px);
-      opacity: 0;
+      background-position: 468px 0;
     }
   }
   
-  .lens-flare {
-    animation: lens-flare 3s ease-in-out infinite;
+  .shimmer {
+    animation: shimmer 1.2s infinite;
+    background: linear-gradient(90deg, 
+      hsl(var(--muted)) 0%, 
+      hsl(var(--muted-foreground) / 0.1) 20%, 
+      hsl(var(--muted-foreground) / 0.1) 60%, 
+      hsl(var(--muted)) 100%);
+    background-size: 800px 104px;
   }
 }
